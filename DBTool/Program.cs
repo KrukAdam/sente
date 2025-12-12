@@ -99,17 +99,13 @@ namespace DbMetaTool
             // 2) Pobierz metadane domen, tabel (z kolumnami) i procedur.
             // 3) Wygeneruj pliki .sql / .json / .txt w outputDirectory.
 
+            var reader = new DBTool.Export.Services.FirebirdMetadataReader();
+            var writer = new DBTool.Export.Services.JsonSchemaWriter();
+            var exporter = new DBTool.Export.Services.ExportScriptsService(reader, writer);
 
-            Directory.CreateDirectory(outputDirectory);
+            exporter.Export(connectionString, outputDirectory);
 
-            using var conn = new FirebirdSql.Data.FirebirdClient.FbConnection(connectionString);
-            conn.Open();
-
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT 1 FROM RDB$DATABASE";
-            var result = cmd.ExecuteScalar();
-
-            Console.WriteLine($"Połączenie OK. Test query zwróciło: {result}");
+            Console.WriteLine($"Wygenerowano: {Path.Combine(outputDirectory, "schema.json")}");
         }
 
         /// <summary>
