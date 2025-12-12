@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DBTool.Export;
+using System;
 using System.IO;
 
 namespace DbMetaTool
@@ -105,7 +106,7 @@ namespace DbMetaTool
 
             exporter.Export(connectionString, outputDirectory);
 
-            Console.WriteLine($"Wygenerowano: {Path.Combine(outputDirectory, "schema.json")}");
+            Console.WriteLine($"Wygenerowano: {Path.Combine(outputDirectory, ExportFiles.SchemaJson)}");
         }
 
         /// <summary>
@@ -117,7 +118,9 @@ namespace DbMetaTool
             // 1) Połącz się z bazą danych przy użyciu connectionString.
             // 2) Wykonaj skrypty z katalogu scriptsDirectory (tylko obsługiwane elementy).
             // 3) Zadbaj o poprawną kolejność i bezpieczeństwo zmian.
-            throw new NotImplementedException();
+
+            var executor = new DBTool.Update.Services.FirebirdSqlScriptExecutor();
+            executor.ExecuteDirectory(connectionString, scriptsDirectory);
         }
     }
 }
