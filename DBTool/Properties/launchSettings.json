@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DBTool": {
+      "commandName": "Project",
+      "commandLineArgs": "build-db --db-dir \"D:\\Praca\\Sente\\Test\\db\" --scripts-dir \"D:\\Praca\\Sente\\Test\\scripts\""
+    }
+  }
+}

@@ -416,3 +416,11 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# --- Sente task / Firebird ---
+*.fdb
+*.fbk
+
+# Local working directories (generated data)
+Db/
+Out/
