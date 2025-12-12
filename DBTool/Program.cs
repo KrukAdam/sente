@@ -88,11 +88,35 @@ namespace DbMetaTool
             //    (tylko domeny, tabele, procedury).
             // 3) Obsłuż błędy i wyświetl raport.
 
-            var executor = new DBTool.Update.Services.FirebirdSqlScriptExecutor();
-            var builder = new DBTool.Build.Services.FirebirdDatabaseBuilder(executor);
+            if (string.IsNullOrWhiteSpace(databaseDirectory))
+                throw new ArgumentException("databaseDirectory is required.", nameof(databaseDirectory));
 
-            var dbPath = builder.Build(databaseDirectory, scriptsDirectory);
-            Console.WriteLine($"[DBTool] Database created: {dbPath}");
+            if (string.IsNullOrWhiteSpace(scriptsDirectory))
+                throw new ArgumentException("scriptsDirectory is required.", nameof(scriptsDirectory));
+
+            Console.WriteLine("[DBTool] Build started.");
+            Console.WriteLine($"[DBTool] Target dir: {databaseDirectory}");
+            Console.WriteLine($"[DBTool] Scripts dir: {scriptsDirectory}");
+
+            try
+            {
+                var executor = new DBTool.Update.Services.FirebirdSqlScriptExecutor();
+                var builder = new DBTool.Build.Services.FirebirdDatabaseBuilder(executor);
+
+                var dbPath = builder.Build(databaseDirectory, scriptsDirectory);
+
+                // raport
+                var statsReader = new DBTool.Build.Services.FirebirdMetadataStatsReader();
+                var stats = statsReader.ReadForDatabaseFile(dbPath);
+
+                Console.WriteLine($"[DBTool] Database created: {dbPath}");
+                Console.WriteLine($"[DBTool] Metadata counts: Domains={stats.Domains}, Tables={stats.Tables}, Procedures={stats.Procedures}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[DBTool] Build failed: " + ex.Message);
+                throw; // żeby Main zachował swoje zachowanie (kod -1)
+            }
         }
 
         /// <summary>
