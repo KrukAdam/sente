@@ -417,10 +417,13 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-# --- Sente task / Firebird ---
+# Sente task / Firebird
 *.fdb
 *.fbk
 
 # Local working directories (generated data)
-Db/
-Out/
+[Dd]b/
+[Oo]ut/
+
+# Local run profiles
+**/Properties/launchSettings.json

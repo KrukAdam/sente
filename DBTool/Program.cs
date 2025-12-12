@@ -98,7 +98,18 @@ namespace DbMetaTool
             // 1) Połącz się z bazą danych przy użyciu connectionString.
             // 2) Pobierz metadane domen, tabel (z kolumnami) i procedur.
             // 3) Wygeneruj pliki .sql / .json / .txt w outputDirectory.
-            throw new NotImplementedException();
+
+
+            Directory.CreateDirectory(outputDirectory);
+
+            using var conn = new FirebirdSql.Data.FirebirdClient.FbConnection(connectionString);
+            conn.Open();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT 1 FROM RDB$DATABASE";
+            var result = cmd.ExecuteScalar();
+
+            Console.WriteLine($"Połączenie OK. Test query zwróciło: {result}");
         }
 
         /// <summary>
