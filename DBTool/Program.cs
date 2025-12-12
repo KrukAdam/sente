@@ -87,7 +87,12 @@ namespace DbMetaTool
             // 2) Wczytaj i wykonaj kolejno skrypty z katalogu scriptsDirectory
             //    (tylko domeny, tabele, procedury).
             // 3) Obsłuż błędy i wyświetl raport.
-            throw new NotImplementedException();
+
+            var executor = new DBTool.Update.Services.FirebirdSqlScriptExecutor();
+            var builder = new DBTool.Build.Services.FirebirdDatabaseBuilder(executor);
+
+            var dbPath = builder.Build(databaseDirectory, scriptsDirectory);
+            Console.WriteLine($"[DBTool] Database created: {dbPath}");
         }
 
         /// <summary>
