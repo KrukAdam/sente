@@ -1,61 +1,116 @@
 # Firebird DBTool CLI
 
-A .NET 8 command-line tool for working with Firebird 5.0 databases.
+A .NET 8 command-line tool for building, updating, and exporting Firebird 5.0 database schema.
 
-It supports creating a new database from SQL scripts, updating an existing database, and exporting metadata into JSON format.
+This project was created as a practical CLI tool for working with SQL-based schema definitions and Firebird metadata. It supports creating a new database from scripts, updating an existing database, and exporting schema metadata to JSON.
 
 ## Features
 
-- `build-db` – creates a new empty database and executes SQL scripts
-- `update-db` – updates an existing database based on SQL scripts
-- `export-scripts` – exports metadata (`domains`, `tables`, `procedures`) to `schema.json`
-
-## Tech Stack
-
-- .NET 8
-- Firebird 5.0
-- CLI application
-- SQL metadata export
-
-## Requirements
-
-- .NET 8 SDK
-- Firebird 5.0 server running (default: `127.0.0.1:3050`)
-- IBExpert (optional, for database inspection)
-
-## Configuration
-
-Database credentials are not stored in the repository.
-
-Set the following environment variables before running the tool:
-
-### Required
-- `FB_PASSWORD`
-
-### Optional
-- `FB_HOST` (default: `127.0.0.1`)
-- `FB_PORT` (default: `3050`)
-- `FB_USER` (default: `SYSDBA`)
-
-In Visual Studio:
-`Project Properties -> Debug -> Environment variables`
-
-## SQL Scripts
-
-SQL scripts used for database creation and updates are located in:
-
-`DBTool/Scripts/Firebird`
+- Build a new database from SQL scripts
+- Update an existing database
+- Export schema metadata to `schema.json`
+- Transactional update flow with rollback on failure
+- Retry execution for dependent procedures
+- Basic schema diff support for missing domains, tables, and columns
 
 ## Supported Objects
 
 The tool currently supports:
 
 - domains
-- tables (including columns)
+- tables
+- columns
 - procedures
 
-## Usage
+## Tech Stack
+
+- .NET 8
+- C#
+- Firebird 5.0
+- CLI application
+
+## Requirements
+
+- .NET 8 SDK
+- Firebird 5.0 server
+- `FB_PASSWORD` environment variable
+
+## Configuration
+
+Database credentials are not stored in the repository.
+
+Required environment variable:
+
+- `FB_PASSWORD`
+
+Optional environment variables:
+
+- `FB_HOST`
+- `FB_PORT`
+- `FB_USER`
+
+In Visual Studio:
+`Project Properties -> Debug -> Environment variables`
+
+## SQL Scripts
+
+SQL scripts used for database creation and update are located in:
+
+`DBTool/Scripts/Firebird`
+
+## Commands
 
 ### Build a new database
+
 ```bash
-dotnet run -- build-db
+dotnet run -- build-db --db-dir "<database_directory>" --scripts-dir "<scripts_directory>"
+```
+
+### Update an existing database
+
+```bash
+dotnet run -- update-db --connection-string "<connection_string>" --scripts-dir "<scripts_directory>"
+```
+
+### Export schema metadata
+
+```bash
+dotnet run -- export-scripts --connection-string "<connection_string>" --output-dir "<output_directory>"
+```
+
+```md
+## Export Output
+
+The export command generates `schema.json` with schema metadata for supported objects.
+```
+## Improvements After Review Feedback
+
+The project was improved after technical review feedback.
+
+Implemented improvements:
+
+- added transactional update flow with rollback support
+- added retry handling for dependent procedures
+- improved update flow with basic schema diff support
+- improved execution safety for build and update scenarios
+
+## Current Limitations
+
+This is not a full migration framework.
+
+The current update flow focuses on practical support for:
+
+- missing domains
+- missing tables
+- missing columns
+- dependent procedures
+
+## Project Goal
+
+The goal of this project is to demonstrate practical backend-oriented problem solving in a .NET CLI application, including:
+
+- database metadata handling
+- safe schema updates
+- transactional execution
+- structured command-line workflows
+- iterative improvement based on technical feedback
