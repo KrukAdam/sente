@@ -2,154 +2,127 @@
 using System;
 using System.IO;
 
-namespace DbMetaTool
+namespace DbMetaTool;
+
+public static class Program
 {
-    public static class Program
+    public static int Main(string[] args)
     {
-        // Przykładowe wywołania:
-        // DbMetaTool build-db --db-dir "C:\db\fb5" --scripts-dir "C:\scripts"
-        // DbMetaTool export-scripts --connection-string "..." --output-dir "C:\out"
-        // DbMetaTool update-db --connection-string "..." --scripts-dir "C:\scripts"
-        public static int Main(string[] args)
+        if (args.Length == 0)
         {
-            if (args.Length == 0)
-            {
-                Console.WriteLine("Użycie:");
-                Console.WriteLine("  build-db --db-dir <ścieżka> --scripts-dir <ścieżka>");
-                Console.WriteLine("  export-scripts --connection-string <connStr> --output-dir <ścieżka>");
-                Console.WriteLine("  update-db --connection-string <connStr> --scripts-dir <ścieżka>");
-                return 1;
-            }
-
-            try
-            {
-                var command = args[0].ToLowerInvariant();
-
-                switch (command)
-                {
-                    case "build-db":
-                        {
-                            string dbDir = GetArgValue(args, "--db-dir");
-                            string scriptsDir = GetArgValue(args, "--scripts-dir");
-
-                            BuildDatabase(dbDir, scriptsDir);
-                            Console.WriteLine("Baza danych została zbudowana pomyślnie.");
-                            return 0;
-                        }
-
-                    case "export-scripts":
-                        {
-                            string connStr = GetArgValue(args, "--connection-string");
-                            string outputDir = GetArgValue(args, "--output-dir");
-
-                            ExportScripts(connStr, outputDir);
-                            Console.WriteLine("Skrypty zostały wyeksportowane pomyślnie.");
-                            return 0;
-                        }
-
-                    case "update-db":
-                        {
-                            string connStr = GetArgValue(args, "--connection-string");
-                            string scriptsDir = GetArgValue(args, "--scripts-dir");
-
-                            UpdateDatabase(connStr, scriptsDir);
-                            Console.WriteLine("Baza danych została zaktualizowana pomyślnie.");
-                            return 0;
-                        }
-
-                    default:
-                        Console.WriteLine($"Nieznane polecenie: {command}");
-                        return 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Błąd: " + ex.Message);
-                return -1;
-            }
+            Console.WriteLine("Użycie:");
+            Console.WriteLine(" build-db --db-dir <ścieżka> --scripts-dir <ścieżka>");
+            Console.WriteLine(" export-scripts --connection-string  --output-dir <ścieżka>");
+            Console.WriteLine(" update-db --connection-string  --scripts-dir <ścieżka>");
+            return 1;
         }
 
-        private static string GetArgValue(string[] args, string name)
+        try
         {
-            int idx = Array.IndexOf(args, name);
-            if (idx == -1 || idx + 1 >= args.Length)
-                throw new ArgumentException($"Brak wymaganego parametru {name}");
-            return args[idx + 1];
-        }
+            var command = args[0].ToLowerInvariant();
 
-        /// <summary>
-        /// Buduje nową bazę danych Firebird 5.0 na podstawie skryptów.
-        /// </summary>
-        public static void BuildDatabase(string databaseDirectory, string scriptsDirectory)
-        {
-            // TODO:
-            // 1) Utwórz pustą bazę danych FB 5.0 w katalogu databaseDirectory.
-            // 2) Wczytaj i wykonaj kolejno skrypty z katalogu scriptsDirectory
-            //    (tylko domeny, tabele, procedury).
-            // 3) Obsłuż błędy i wyświetl raport.
-
-            if (string.IsNullOrWhiteSpace(databaseDirectory))
-                throw new ArgumentException("databaseDirectory is required.", nameof(databaseDirectory));
-
-            if (string.IsNullOrWhiteSpace(scriptsDirectory))
-                throw new ArgumentException("scriptsDirectory is required.", nameof(scriptsDirectory));
-
-            Console.WriteLine("[DBTool] Build started.");
-            Console.WriteLine($"[DBTool] Target dir: {databaseDirectory}");
-            Console.WriteLine($"[DBTool] Scripts dir: {scriptsDirectory}");
-
-            try
+            switch (command)
             {
-                var executor = new DBTool.Update.Services.FirebirdSqlScriptExecutor();
-                var builder = new DBTool.Build.Services.FirebirdDatabaseBuilder(executor);
+                case "build-db":
+                    {
+                        string dbDir = GetArgValue(args, "--db-dir");
+                        string scriptsDir = GetArgValue(args, "--scripts-dir");
+                        BuildDatabase(dbDir, scriptsDir);
+                        Console.WriteLine("Baza danych została zbudowana pomyślnie.");
+                        return 0;
+                    }
 
-                var dbPath = builder.Build(databaseDirectory, scriptsDirectory);
+                case "export-scripts":
+                    {
+                        string connStr = GetArgValue(args, "--connection-string");
+                        string outputDir = GetArgValue(args, "--output-dir");
+                        ExportScripts(connStr, outputDir);
+                        Console.WriteLine("Skrypty zostały wyeksportowane pomyślnie.");
+                        return 0;
+                    }
 
-                // raport
-                var statsReader = new DBTool.Build.Services.FirebirdMetadataStatsReader();
-                var stats = statsReader.ReadForDatabaseFile(dbPath);
+                case "update-db":
+                    {
+                        string connStr = GetArgValue(args, "--connection-string");
+                        string scriptsDir = GetArgValue(args, "--scripts-dir");
+                        UpdateDatabase(connStr, scriptsDir);
+                        Console.WriteLine("Baza danych została zaktualizowana pomyślnie.");
+                        return 0;
+                    }
 
-                Console.WriteLine($"[DBTool] Database created: {dbPath}");
-                Console.WriteLine($"[DBTool] Metadata counts: Domains={stats.Domains}, Tables={stats.Tables}, Procedures={stats.Procedures}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[DBTool] Build failed: " + ex.Message);
-                throw; // żeby Main zachował swoje zachowanie (kod -1)
+                default:
+                    Console.WriteLine($"Nieznane polecenie: {command}");
+                    return 1;
             }
         }
-
-        /// <summary>
-        /// Generuje skrypty metadanych z istniejącej bazy danych Firebird 5.0.
-        /// </summary>
-        public static void ExportScripts(string connectionString, string outputDirectory)
+        catch (Exception ex)
         {
-            // TODO:
-            // 1) Połącz się z bazą danych przy użyciu connectionString.
-            // 2) Pobierz metadane domen, tabel (z kolumnami) i procedur.
-            // 3) Wygeneruj pliki .sql / .json / .txt w outputDirectory.
-
-            var reader = new DBTool.Export.Services.FirebirdMetadataReader();
-            var writer = new DBTool.Export.Services.JsonSchemaWriter();
-            var exporter = new DBTool.Export.Services.ExportScriptsService(reader, writer);
-
-            exporter.Export(connectionString, outputDirectory);
-
-            Console.WriteLine($"Wygenerowano: {Path.Combine(outputDirectory, ExportFiles.SchemaJson)}");
+            Console.WriteLine("Błąd: " + ex.Message);
+            return -1;
         }
+    }
 
-        /// <summary>
-        /// Aktualizuje istniejącą bazę danych Firebird 5.0 na podstawie skryptów.
-        /// </summary>
-        public static void UpdateDatabase(string connectionString, string scriptsDirectory)
+    private static string GetArgValue(string[] args, string name)
+    {
+        int idx = Array.IndexOf(args, name);
+        if (idx == -1 || idx + 1 >= args.Length)
+            throw new ArgumentException($"Brak wymaganego parametru {name}");
+
+        return args[idx + 1];
+    }
+
+    public static void BuildDatabase(string databaseDirectory, string scriptsDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(databaseDirectory))
+            throw new ArgumentException("databaseDirectory is required.", nameof(databaseDirectory));
+
+        if (string.IsNullOrWhiteSpace(scriptsDirectory))
+            throw new ArgumentException("scriptsDirectory is required.", nameof(scriptsDirectory));
+
+        Console.WriteLine("[DBTool] Build started.");
+        Console.WriteLine($"[DBTool] Target dir: {databaseDirectory}");
+        Console.WriteLine($"[DBTool] Scripts dir: {scriptsDirectory}");
+
+        try
         {
-            // TODO:
-            // 1) Połącz się z bazą danych przy użyciu connectionString.
-            // 2) Wykonaj skrypty z katalogu scriptsDirectory (tylko obsługiwane elementy).
-            // 3) Zadbaj o poprawną kolejność i bezpieczeństwo zmian.
-
             var executor = new DBTool.Update.Services.FirebirdSqlScriptExecutor();
-            executor.ExecuteDirectory(connectionString, scriptsDirectory);
+            var builder = new DBTool.Build.Services.FirebirdDatabaseBuilder(executor);
+            var dbPath = builder.Build(databaseDirectory, scriptsDirectory);
+
+            var statsReader = new DBTool.Build.Services.FirebirdMetadataStatsReader();
+            var stats = statsReader.ReadForDatabaseFile(dbPath);
+
+            Console.WriteLine($"[DBTool] Database created: {dbPath}");
+            Console.WriteLine($"[DBTool] Metadata counts: Domains={stats.Domains}, Tables={stats.Tables}, Procedures={stats.Procedures}");
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine("[DBTool] Build failed: " + ex.Message);
+            throw;
+        }
+    }
+
+    public static void ExportScripts(string connectionString, string outputDirectory)
+    {
+        var reader = new DBTool.Export.Services.FirebirdMetadataReader();
+        var writer = new DBTool.Export.Services.JsonSchemaWriter();
+        var exporter = new DBTool.Export.Services.ExportScriptsService(reader, writer);
+        exporter.Export(connectionString, outputDirectory);
+        Console.WriteLine($"Wygenerowano: {Path.Combine(outputDirectory, ExportFiles.SchemaJson)}");
+    }
+
+    public static void UpdateDatabase(string connectionString, string scriptsDirectory)
+    {
+        var executor = new DBTool.Update.Services.FirebirdSqlScriptExecutor();
+        var builder = new DBTool.Build.Services.FirebirdDatabaseBuilder(executor);
+        var metadataReader = new DBTool.Export.Services.FirebirdMetadataReader();
+        var diffService = new DBTool.Update.Services.FirebirdSchemaDiffService();
+        var updateService = new DBTool.Update.Services.FirebirdUpdateService(
+            metadataReader,
+            builder,
+            diffService,
+            executor);
+
+        updateService.Update(connectionString, scriptsDirectory);
     }
 }
